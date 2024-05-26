@@ -11,7 +11,7 @@ const dialogueElement = document.getElementById('dialogue');
 const dialogueTextElement = document.getElementById('dialogue-text');
 const leaderboard = document.getElementById('leaderboard'); // 新增获取#leaderboard元素
 
-let loveValue;
+let loveValue = 3;
 let progressValue;
 let gameDuration = 50000; // 游戏时长50秒（以毫秒为单位）
 let gameOver;
@@ -393,7 +393,7 @@ function resetGame() {
         clearInterval(timeout);
     });
     sosoDialogueTimeouts = [];
-    loveValue = 100;
+    loveValue = 3;
     progressValue = 0;
     npcEmoState = false;
     emoEndTime = 20;
