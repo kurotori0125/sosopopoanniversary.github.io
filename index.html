@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SosoPopoFly</title>
+    <audio id="backgroundMusic" loop>
+        <source src="Cannothelpfallinginlove.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: url('fonts/pixel.tff') format('opentype');
+        }
+        body {
+            font-family: 'Pixel', Arial, sans-serif; /* 使用自定义字体，如果无法加载则使用备选字体 */
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* background: linear-gradient(to bottom, rgb(135, 206, 235), #FFFFFF); */
+            background: 
+                linear-gradient(
+                    limegreen,
+                    transparent
+                ),
+                linear-gradient(
+                    90deg,
+                    skyblue,
+                    transparent
+                ),
+                linear-gradient(
+                    -90deg,
+                    skyblue,
+                    transparent
+                );
+            background-blend-mode: screen;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border-radius: 23px;
+            overflow: hidden;
+            backdrop-filter: blur(3px) brightness(102%);
+            background: 
+                linear-gradient(to top, rgba(135, 206, 235, 0.3), rgba(255, 255, 255, 0.3)), 
+                url('images/bg.png');
+            box-shadow: 
+                0 0 0 90px rgba(255, 255, 255, 0.05), /* 第一个描边，较大的模糊半径和较低的不透明度 */
+                0 0 0 50px rgba(255, 255, 255, 0.15), /* 第二个描边，中等模糊半径和中等不透明度 */
+                0 0 0 30px rgba(255, 255, 255, 0.3), /* 第三个描边，较小的模糊半径和较高的不透明度 */
+                0 0 0 15px rgba(255, 255, 255, 0.4); /* 第四个描边，更小的模糊半径和更高的不透明度 */
+        }
+
+        .character {
+            position: absolute;
+            width: 60px;
+            height: 96px;
+            background-size: cover;
+            z-index: 10;
+        }
+
+        #player {
+            background-image: url('images/player.png');
+            bottom: 230px;
+            left: 45%;
+            transform: translateX(-50%);
+        }
+
+        #npc {
+            background-image: url('images/npc.png');
+            bottom: 230px;
+            left: 55%;
+            transform: translateX(-50%);
+        }
+
+        #airplane {
+            position: absolute;
+            width: 1000px;
+            height: 600px;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image: url('images/airplane.png');
+            background-size: cover;
+            z-index: -5;
+        }
+
+        #progress-bar {
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            height: 20px;
+            background: #e5f9ff77;
+        }
+
+        #progress {
+            height: 100%;
+            width: 0;
+            background: #5597cc;
+        }
+
+        #love-counter {
+            position: absolute;
+            top: 4%;
+            right: 3%;
+            font-size: 24px;
+            color: red;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+        }
+
+        #cloud-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('images/cloud.png');
+            background-size: cover;
+            animation: moveCloud 10s linear infinite;
+        }
+
+        .heart-effect {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 192, 203, 0.569);
+            opacity: 1;
+            background-image: url('images/heart.png');
+            background-size: cover;
+            animation: heartRise 3s forwards;
+        }
+
+        @keyframes heartRise {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            25% {
+                transform: scale(1.2);
+            }
+            75% {
+                transform: translateY(-100px) scale(1.2);
+            }
+            100% {
+                transform: translateY(-200px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .umbrella {
+            position: absolute;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background-image: url('images/umbrella.png');
+            background-size: cover;
+            z-index: 15;
+            display: none;
+        }
+
+        @keyframes moveCloud {
+            0% {
+                top: -50px;
+                opacity: 1;
+            }
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        .emo-message {
+            position: absolute;
+            top: 10%;
+            width: 100%;
+            text-align: center;
+            font-size: 18px;
+            color: hwb(207 4% 45%);
+            /* animation: scrollText 10s linear infinite; */
+            display: none;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes scrollText {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        /* 新增台词样式 */
+        #dialogue {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            bottom: 20px; /* 位于 NPC 上方 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px; /* 调整台词框的宽度 */
+            height: 50px;
+            backdrop-filter: blur(2px);
+            background-color: rgba(255, 255, 255, 0.6);
+            text-align: left;
+            padding: 20px;
+            border-radius: 10px; /* 圆角 */
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 20; /* 确保在 NPC 上方 */
+            display: none;
+            color: hwb(207 4% 45%);
+        }
+
+        #dialogue-avatar {
+            width: 80px; /* 调整为适合的头像大小 */
+            height: 80px;
+            margin-right: 10px; /* 调整为适合的间距 */
+            margin-left: -15px;
+        }
+
+        #dialogue-text {
+            flex-grow: 1;
+        }
+
+        /* 新增爱心样式 */
+        .heart {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('images/heart.png');
+            background-size: cover;
+            animation: heartAnimation 10s linear infinite;
+        }
+
+        @keyframes heartAnimation {
+            0% {
+                top: -50px;
+                opacity: 1;
+                transform: scale(0.5);
+            }
+            100% {
+                top: 100%;
+                opacity: 0;
+                transform: scale(1);
+            }
+        }
+
+        /* 旋转动画类 */
+        .crash {
+            animation: spin 10s linear infinite;
+        }
+
+        /* 旋转动画定义 */
+        @keyframes spin {
+            from {
+                transform: translateX(-50%) rotate(var(--tilt-angle));
+            }
+            to {
+                /* 根据倾斜的方向设置旋转方向 */
+                transform: translateX(-50%) rotate(calc(var(--rotation-direction) * 360deg));
+            }
+        }
+
+        #footer {
+    color: rgb(255, 255, 255);
+    font-size: 14px;
+    padding: 30px;
+    text-align: center;
+    position: fixed; 
+    width: auto; /* 将宽度设置为自适应内容的宽度 */
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%); /* 使用 transform 属性将其水平居中 */
+}
+
+
+        /* 排行榜容器样式 */
+        #leaderboard {
+            list-style: none; /* 移除列表项默认的标记 */
+            padding: 20px;
+            margin: 20px 0; /* 仅设置顶部和底部的外边距，左边和右边的外边距将通过left属性设置 */
+            width: 380px; /* 排行榜宽度，可以根据需要调整 */
+            height: 330px;
+            background-color: rgba(255, 255, 255, 0.1); /* 排行榜背景颜色，使用rgba以支持透明度 */
+            /* border: 1px solid #ddd; 排行榜边框 */
+            border-radius: 8px; /* 排行榜边框圆角 */
+            position: fixed; /* 固定定位 */
+            top: 250px; /* 与顶部的间隔 */
+            left: 50px; /* 与左边的间隔 */
+            overflow-y: hidden; 
+            overflow-x: hidden; 
+            /* 其他样式保持不变 */
+        }
+
+        /* 排行榜项样式 */
+        #leaderboard li {
+            padding: 8px 15px; /* 列表项内边距 */
+            border-bottom: 1px solid #eee; /* 列表项底部边框 */
+            color: rgb(255, 255, 255);
+            font-size: 16px; /* 字体大小 */
+            transition: background-color 0.3s; /* 背景颜色变化的过渡效果 */
+            line-height: 50px;
+        }
+
+        /* 悬停效果 */
+        #leaderboard li:hover {
+            background-color: rgba(233, 233, 233, 0.4); /* 鼠标悬停时的背景颜色 */
+        }
+
+        /* 最后一个列表项的底部边框去除 */
+        #leaderboard li:last-child {
+            border-bottom: none;
+        }
+
+        /* 排行榜项样式 */
+        #leaderboard li:first-child {
+            font-weight: bold; /* 加粗文字 */
+            color: rgb(28, 77, 28, 0.6); /* 将文字颜色设置为绿色 */
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #musicText {
+            position: fixed;
+            bottom: 50px;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: white;
+            padding: 10px;
+            animation: sway 1s infinite;
+        }
+
+        @keyframes sway {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(0); }
+            75% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* 情书大字样式 */
+        #love-letter {
+            position: fixed;
+            top: 50%;
+            right: -2%;
+            transform: translateY(-50%);
+            font-size: 400px;
+            color: rgba(255, 255, 255, 0.2);
+            /* text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); */
+            font-weight: bold;
+        }
+
+        
+        /* 周年大字样式 */
+        #anniversary {
+            position: fixed;
+            top: 50%;
+            left: 5%;
+            transform: translateY(-50%);
+            font-size: 150px;
+            line-height: 600px;
+            color: rgba(255, 255, 255, 0.2);
+            /* text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); */
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <ul id="leaderboard">
+        <!-- 排行榜项 -->
+        <li>第1名: 爱心值 X, 日期 YYYY-MM-DD</li>
+        <li>第2名: 爱心值 Y, 日期 YYYY-MM-DD</li>
+        <!-- 更多排行榜项 -->
+    </ul>
+
+    <div id="game-container">
+        <div id="emo-message" class="emo-message"></div>
+        <div id="cloud-container"></div>
+        <div id="player" class="character"></div>
+        <div id="npc" class="character"></div>
+        <div id="airplane"></div>
+        <div id="progress-bar">
+            <div id="progress"></div>
+        </div>
+        <div id="love-counter"> 
+            <img src="images/heart.png">: 0
+        </div>
+        <div class="umbrella" id="umbrella"></div>
+        <div id="dialogue" style="display: none;">
+            <img id="dialogue-avatar" src="images/soso.png" alt="Avatar">
+            <span id="dialogue-text"></span>
+        </div>
+    </div>
+
+    <div id="love-letter">情<br>书</div>
+    <div id="anniversary">①<br>周年</div>
+
+    <div id="musicText" class="hidden">♪ Can't help falling in love with U</div>
+    <div id="footer"></div>
+
+    <script src="game.js"></script>
+    <script src="autoplay.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDate = new Date();
+        const targetDate = new Date('2023-06-18');
+        const timeDiff = currentDate - targetDate;
+        const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const footerText = `SosoPopo Since 2023年6月18日 距今已${daysDiff}天`;
+        const footer = document.getElementById('footer');
+        footer.textContent = footerText;
+        }
+    )
+      
+    </script>
+</body>
+</html>
